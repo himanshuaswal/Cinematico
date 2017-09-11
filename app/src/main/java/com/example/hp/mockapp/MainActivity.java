@@ -66,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
         mLinearLayout = (LinearLayout) findViewById(R.id.movie_list_linear_layout);
         mErrorMessageDisplay = (TextView) findViewById(R.id.error_message_display);
         Boolean hasConnectivity = hasNetwork(this);
-        Log.d("Connectivity", String.valueOf(hasConnectivity));
         if (!hasConnectivity) {
             mLinearLayout.setVisibility(View.INVISIBLE);
             mErrorMessageDisplay.setVisibility(View.VISIBLE);
