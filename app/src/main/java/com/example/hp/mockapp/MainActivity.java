@@ -1,8 +1,13 @@
 package com.example.hp.mockapp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -31,12 +36,11 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    ArrayList<MovieAttributes> movieAttributes = new ArrayList<>();
     private RecyclerView mRecyclerView;
     private MovieAdapter mMovieAdapter;
     private Spinner spinner;
-    private String genre = "popular";
-    ArrayList<MovieAttributes> movieAttributes = new ArrayList<>();
-
+    private String genre;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,15 +48,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view_movies);
-
         spinner = (Spinner) findViewById(R.id.filter_spinner);
-        ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_filter,R.layout.spinner_item);
+        ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_filter, R.layout.spinner_item);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(arrayAdapter);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long l) {
-                String genre = (String) parent.getItemAtPosition(pos);
+                genre = (String) parent.getItemAtPosition(pos);
                 if (genre.compareTo("Popular") == 0)
                     genre = "popular";
                 else
@@ -77,24 +80,34 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
-        mRecyclerView.setLayoutManager(layoutManager);
+        this.getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(2, 20, true));
-        mMovieAdapter = new MovieAdapter(getApplicationContext(), new MovieAdapter.MovieAdapterOnClickHandler() {
-            @Override
-            public void handleClicks(int position) {
-                Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
-                intent.putExtra("id", String.valueOf(movieAttributes.get(position).get_id()));
-                startActivity(intent);
-            }
-        });
-        mRecyclerView.setAdapter(mMovieAdapter);
-        new FetchMoviesTask().execute(genre);
 
 
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, String> {
+    public void parseJson(String json) {
+        movieAttributes.clear();
+        try {
+
+            JSONObject jsonObj = new JSONObject(json);
+            JSONArray results = jsonObj.getJSONArray("results");
+            for (int i = 0; i < results.length(); i++) {
+                JSONObject c = results.getJSONObject(i);
+                MovieAttributes obj = new MovieAttributes();
+                obj.set_poster_path(c.getString("poster_path"));
+                obj.set_movie_id(c.getInt("id"));
+                movieAttributes.add(obj);
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        mMovieAdapter.setMovieData(movieAttributes);
+
+    }
+
+    private class FetchMoviesTask extends AsyncTask<String, Void, String> {
         private String movieListResponse;
         private String json;
 
@@ -115,26 +128,5 @@ public class MainActivity extends AppCompatActivity {
             json = result;
             parseJson(json);
         }
-    }
-
-    public void parseJson(String json) {
-         movieAttributes.clear();
-        try {
-
-            JSONObject jsonObj = new JSONObject(json);
-            JSONArray results = jsonObj.getJSONArray("results");
-            for (int i = 0; i < results.length(); i++) {
-                JSONObject c = results.getJSONObject(i);
-                MovieAttributes obj = new MovieAttributes();
-                obj.set_poster_path(c.getString("poster_path"));
-                obj.set_movie_id(c.getInt("id"));
-                movieAttributes.add(obj);
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        mMovieAdapter.setMovieData(movieAttributes);
-
     }
 }

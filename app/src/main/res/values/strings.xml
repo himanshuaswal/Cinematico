@@ -6,4 +6,5 @@
         <item>Top Rated</item>
         <item>Popular</item>
     </string-array>
+    <string name="error_message">No network access.Please have a proper network connection</string>
 </resources>

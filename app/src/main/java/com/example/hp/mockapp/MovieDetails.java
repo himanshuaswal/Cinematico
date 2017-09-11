@@ -19,12 +19,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class MovieDetails extends AppCompatActivity {
+    static String id;
     private TextView mOriginalTitle;
     private TextView mOverview;
     private TextView mVoteAverage;
     private TextView mReleaseDate;
     private ImageView mPosterPath;
-    static String id;
+    private TextView mRatingTextView;
+    private TextView mReleaseDateTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +37,8 @@ public class MovieDetails extends AppCompatActivity {
         mVoteAverage = (TextView) findViewById(R.id.vote_average);
         mReleaseDate = (TextView) findViewById(R.id.release_date);
         mPosterPath=(ImageView)findViewById(R.id.poster_image);
+        mRatingTextView = (TextView) findViewById(R.id.rating_text_view);
+        mReleaseDateTextView = (TextView) findViewById(R.id.release_date_text_view);
         Intent intentThatStartedThisActivity = getIntent();
         id = intentThatStartedThisActivity.getStringExtra("id");
         new FetchMovieDetails().execute();
@@ -62,6 +66,8 @@ public class MovieDetails extends AppCompatActivity {
                 mOriginalTitle.setText(jsonObject.getString("original_title"));
                 mOverview.setText(jsonObject.getString("overview"));
                 mVoteAverage.setText(String.valueOf(jsonObject.getDouble("vote_average")));
+                mReleaseDateTextView.setText("Release Date : ");
+                mRatingTextView.setText("Rating : ");
                 mReleaseDate.setText(jsonObject.getString("release_date"));
                 Picasso.with(getApplicationContext()).load(MovieAdapter.BASE_URL+jsonObject.getString("poster_path")).resize(200,300).placeholder(R.color.colorAccent).into(mPosterPath);
 
