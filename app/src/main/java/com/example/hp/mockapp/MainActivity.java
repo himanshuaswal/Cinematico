@@ -19,7 +19,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -41,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private MovieAdapter mMovieAdapter;
     private Spinner spinner;
     private String genre;
+    private ProgressBar mLoadingIndicator;
+    private LinearLayout mLinearLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view_movies);
         spinner = (Spinner) findViewById(R.id.filter_spinner);
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
+        mLinearLayout = (LinearLayout) findViewById(R.id.movie_list_linear_layout);
         ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_filter, R.layout.spinner_item);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(arrayAdapter);
@@ -112,6 +118,13 @@ public class MainActivity extends AppCompatActivity {
         private String json;
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+            mLinearLayout.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
         protected String doInBackground(String... strings) {
             String genre = strings[0];
             URL movieListUrl = NetworkUtils.buildUrlForMovieList(genre);
@@ -126,6 +139,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             json = result;
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+            mLinearLayout.setVisibility(View.VISIBLE);
             parseJson(json);
         }
     }
