@@ -45,51 +45,65 @@ public class MainActivity extends AppCompatActivity {
     private String genre;
     private ProgressBar mLoadingIndicator;
     private LinearLayout mLinearLayout;
+    private TextView mErrorMessageDisplay;
+
+    public static Boolean hasNetwork(Context context) {
+        Boolean isThereNetwork = false;
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected())
+            isThereNetwork = true;
+        return isThereNetwork;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view_movies);
         spinner = (Spinner) findViewById(R.id.filter_spinner);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
         mLinearLayout = (LinearLayout) findViewById(R.id.movie_list_linear_layout);
-        ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_filter, R.layout.spinner_item);
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(arrayAdapter);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int pos, long l) {
-                genre = (String) parent.getItemAtPosition(pos);
-                if (genre.compareTo("Popular") == 0)
-                    genre = "popular";
-                else
-                    genre = "top_rated";
-                GridLayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
-                mRecyclerView.setLayoutManager(layoutManager);
-                mMovieAdapter = new MovieAdapter(getApplicationContext(), new MovieAdapter.MovieAdapterOnClickHandler() {
-                    @Override
-                    public void handleClicks(int position) {
-                        Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
-                        intent.putExtra("id", String.valueOf(movieAttributes.get(position).get_id()));
-                        startActivity(intent);
-                    }
-                });
-                mRecyclerView.setAdapter(mMovieAdapter);
-                new FetchMoviesTask().execute(genre);
+        mErrorMessageDisplay = (TextView) findViewById(R.id.error_message_display);
+        Boolean hasConnectivity = hasNetwork(this);
+        Log.d("Connectivity", String.valueOf(hasConnectivity));
+        if (!hasConnectivity) {
+            mLinearLayout.setVisibility(View.INVISIBLE);
+            mErrorMessageDisplay.setVisibility(View.VISIBLE);
+        } else {
+            ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_filter, R.layout.spinner_item);
+            arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(arrayAdapter);
+            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int pos, long l) {
+                    genre = (String) parent.getItemAtPosition(pos);
+                    if (genre.compareTo("Popular") == 0)
+                        genre = "popular";
+                    else
+                        genre = "top_rated";
+                    GridLayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
+                    mRecyclerView.setLayoutManager(layoutManager);
+                    mMovieAdapter = new MovieAdapter(getApplicationContext(), new MovieAdapter.MovieAdapterOnClickHandler() {
+                        @Override
+                        public void handleClicks(int position) {
+                            Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
+                            intent.putExtra("id", String.valueOf(movieAttributes.get(position).get_id()));
+                            startActivity(intent);
+                        }
+                    });
+                    mRecyclerView.setAdapter(mMovieAdapter);
+                    new FetchMoviesTask().execute(genre);
 
-            }
+                }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-        this.getWindow().getDecorView().setBackgroundColor(Color.BLACK);
-        mRecyclerView.addItemDecoration(new SpacesItemDecoration(2, 20, true));
-
-
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+                }
+            });
+            this.getWindow().getDecorView().setBackgroundColor(Color.BLACK);
+            mRecyclerView.addItemDecoration(new SpacesItemDecoration(2, 20, true));
+        }
     }
 
     public void parseJson(String json) {
