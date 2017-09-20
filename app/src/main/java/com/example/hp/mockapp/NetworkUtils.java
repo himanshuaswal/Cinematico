@@ -16,8 +16,8 @@ import java.util.Scanner;
 public class NetworkUtils {
 
     private static final String MOVIES_URL = "https://api.themoviedb.org/3/movie/";
+    private static final String API_KEY = BuildConfig.MY_MOVIE_DB_API_KEY;
     private static String MOVIE_DETAILS_URL = "https://api.themoviedb.org/3/movie/";
-    private static final String API_KEY = "ad6270825ed0e0e15c5c2449a8ebbb77";
     private static String api_param = "api_key";
 
     public static URL buildUrlForMovieList(String genre) {
