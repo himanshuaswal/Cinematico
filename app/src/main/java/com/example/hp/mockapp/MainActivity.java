@@ -86,8 +86,9 @@ public class MainActivity extends AppCompatActivity {
                     mMovieAdapter = new MovieAdapter(getApplicationContext(), new MovieAdapter.MovieAdapterOnClickHandler() {
                         @Override
                         public void handleClicks(int position) {
+                            MovieAttributes dataToSend = movieAttributes.get(position);
                             Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
-                            intent.putExtra("id", String.valueOf(movieAttributes.get(position).get_id()));
+                            intent.putExtra("myDataKey", dataToSend);
                             startActivity(intent);
                         }
                     });
@@ -115,7 +116,10 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject c = results.getJSONObject(i);
                 MovieAttributes obj = new MovieAttributes();
                 obj.set_poster_path(c.getString("poster_path"));
-                obj.set_movie_id(c.getInt("id"));
+                obj.set_original_title(c.getString("original_title"));
+                obj.set_overview(c.getString("overview"));
+                obj.set_vote_average(c.getDouble("vote_average"));
+                obj.set_release_date(c.getString("release_date"));
                 movieAttributes.add(obj);
             }
 

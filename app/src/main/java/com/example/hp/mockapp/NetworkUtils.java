@@ -17,7 +17,6 @@ public class NetworkUtils {
 
     private static final String MOVIES_URL = "https://api.themoviedb.org/3/movie/";
     private static final String API_KEY = BuildConfig.MY_MOVIE_DB_API_KEY;
-    private static String MOVIE_DETAILS_URL = "https://api.themoviedb.org/3/movie/";
     private static String api_param = "api_key";
 
     public static URL buildUrlForMovieList(String genre) {
@@ -33,18 +32,6 @@ public class NetworkUtils {
         return url;
     }
 
-    public static URL buildUrlForMovieDetails() {
-        Uri builtUri = Uri.parse(MOVIE_DETAILS_URL + MovieDetails.id).buildUpon()
-                .appendQueryParameter(api_param, API_KEY)
-                .build();
-        URL url = null;
-        try {
-            url = new URL(builtUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        return url;
-    }
 
     public static String getResponseFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
