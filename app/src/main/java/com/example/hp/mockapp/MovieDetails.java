@@ -1,23 +1,30 @@
 package com.example.hp.mockapp;
 
 import android.content.Intent;
-import android.net.Uri;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.webkit.WebSettings;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class MovieDetails extends AppCompatActivity {
 
@@ -26,35 +33,161 @@ public class MovieDetails extends AppCompatActivity {
     private TextView mVoteAverage;
     private TextView mReleaseDate;
     private ImageView mPosterPath;
-    private TextView mRatingTextView;
-    private TextView mReleaseDateTextView;
+    private TextView mVoteCount;
+    private int movieId;
+    private ArrayList<String> movieTrailerKeys = new ArrayList<>();
+    private ArrayList<String> movieVideoNames = new ArrayList<>();
+    private ArrayList<String> movieReviews = new ArrayList<>();
+    private ArrayList<String> movieReviewAuthor = new ArrayList<>();
+    private RecyclerView mTrailerRecyclerView;
+    private Button mFavoriteButton;
+    private RecyclerView mReviewRecyclerView;
+    private MovieTrailersAdapter movieDetailsAdapter;
+    private MovieReviewsAdapter mMovieReviewAdapter;
+    private byte[] byteArray;
+    private Bitmap bmp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
-        mOriginalTitle = (TextView) findViewById(R.id.original_title);
-        mOverview = (TextView) findViewById(R.id.overview);
-        mVoteAverage = (TextView) findViewById(R.id.vote_average);
-        mReleaseDate = (TextView) findViewById(R.id.release_date);
-        mPosterPath = (ImageView) findViewById(R.id.poster_image);
-        mRatingTextView = (TextView) findViewById(R.id.rating_text_view);
-        mReleaseDateTextView = (TextView) findViewById(R.id.release_date_text_view);
+        mOriginalTitle = findViewById(R.id.original_title);
+        mOverview = findViewById(R.id.overview);
+        mVoteAverage = findViewById(R.id.vote_average);
+        mReleaseDate = findViewById(R.id.release_date);
+        mPosterPath = findViewById(R.id.poster_image);
+        mVoteCount = findViewById(R.id.vote_count);
+        mTrailerRecyclerView = findViewById(R.id.recycler_view_movie_trailers);
+        mReviewRecyclerView = findViewById(R.id.recycler_view_movie_reviews);
         Intent intentThatStartedThisActivity = getIntent();
         MovieAttributes object = intentThatStartedThisActivity.getParcelableExtra("myDataKey");
+        byteArray = intentThatStartedThisActivity.getByteArrayExtra("image");
+        bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+        movieId = object.get_movie_id();
+        movieTrailerKeys = intentThatStartedThisActivity.getStringArrayListExtra("Movie Trailer Keys");
+        movieVideoNames = intentThatStartedThisActivity.getStringArrayListExtra("Movie Video Names");
+        LinearLayoutManager movieTrailerLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager movieReviewLayoutManager = new LinearLayoutManager(this);
+        mReviewRecyclerView.setLayoutManager(movieReviewLayoutManager);
+        mTrailerRecyclerView.setLayoutManager(movieTrailerLayoutManager);
+        mFavoriteButton = findViewById(R.id.favorite_button);
+        mFavoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bounceAnimation();
+            }
+        });
+        movieDetailsAdapter = new MovieTrailersAdapter(this, bmp);
+        mMovieReviewAdapter = new MovieReviewsAdapter(this);
+        mReviewRecyclerView.setAdapter(mMovieReviewAdapter);
+        mTrailerRecyclerView.setAdapter(movieDetailsAdapter);
+        mTrailerRecyclerView.setNestedScrollingEnabled(false);
+        new FetchTrailersTask().execute(movieId);
+        new FetchReviewsTask().execute(movieId);
         showDetails(object);
+    }
+
+    private void bounceAnimation() {
+        final Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+        BounceInterpolator interpolator = new BounceInterpolator(0.2, 20);
+        myAnim.setInterpolator(interpolator);
+        mFavoriteButton.startAnimation(myAnim);
+
     }
 
     private void showDetails(MovieAttributes object) {
         mOriginalTitle.setText(object.get_original_title());
-        mReleaseDateTextView.setText("Release Date : ");
+        mVoteCount.setText(String.valueOf(object.get_vote_count()));
+        mVoteCount.append(" votes");
         mReleaseDate.setText(object.get_release_date());
-        mRatingTextView.setText("Rating : ");
-        mVoteAverage.setText(String.valueOf(object.get_vote_average()));
+        mVoteAverage.setText(String.valueOf(object.get_vote_average()) + "/10");
         mOverview.setText(object.get_overview());
-        Picasso.with(getApplicationContext()).load(MovieAdapter.BASE_URL + object.get_poster_path()).resize(200, 300).placeholder(R.color.colorAccent).into(mPosterPath);
-
-
+        movieId = object.get_movie_id();
+        Glide.with(this).load(MovieAdapter.BASE_URL + object.get_poster_path()).fitCenter().placeholder(R.color.colorAccent).into(mPosterPath);
     }
 
+    private void parseJsonTrailerResponse(String json) {
+        movieTrailerKeys.clear();
+        movieVideoNames.clear();
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            JSONArray jsonArray = jsonObject.getJSONArray("results");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject c = jsonArray.getJSONObject(i);
+                movieTrailerKeys.add(c.getString("key"));
+                movieVideoNames.add(c.getString("name"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        movieDetailsAdapter.setMovieTrailersData(movieVideoNames, movieTrailerKeys);
+    }
+
+    private void parseJsonReviewResponse(String json) {
+        movieReviews.clear();
+        movieReviewAuthor.clear();
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            JSONArray jsonArray = jsonObject.getJSONArray("results");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject c = jsonArray.getJSONObject(i);
+                movieReviewAuthor.add(c.getString("author"));
+                movieReviews.add(c.getString("content"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        mMovieReviewAdapter.setMovieReviewsData(movieReviewAuthor, movieReviews);
+    }
+
+    private class FetchTrailersTask extends AsyncTask<Integer, Void, String> {
+        private String movieTrailerResponse;
+        private int movieId;
+
+        @Override
+        protected String doInBackground(Integer... integers) {
+            movieId = integers[0];
+            String attribute = "/videos";
+            URL movieTrailersUrl = NetworkUtils.buildUrlForMovieTrailersAndReviews(movieId, attribute);
+            try {
+                movieTrailerResponse = NetworkUtils.getResponseFromHttpUrl(movieTrailersUrl);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return movieTrailerResponse;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            String json = result;
+            parseJsonTrailerResponse(json);
+        }
+    }
+
+    private class FetchReviewsTask extends AsyncTask<Integer, Void, String> {
+        private String movieReviewResponse;
+        private int movieId;
+
+        @Override
+        protected String doInBackground(Integer... integers) {
+            movieId = integers[0];
+            String attribute = "/reviews";
+            URL movieTrailersUrl = NetworkUtils.buildUrlForMovieTrailersAndReviews(movieId, attribute);
+            try {
+                movieReviewResponse = NetworkUtils.getResponseFromHttpUrl(movieTrailersUrl);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return movieReviewResponse;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            String json = result;
+            parseJsonReviewResponse(json);
+
+        }
+    }
 }
+
+

@@ -1,6 +1,7 @@
 package com.example.hp.mockapp;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Movie;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -9,6 +10,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -24,10 +29,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
     private ArrayList<MovieAttributes> mMovieAttributes = new ArrayList<>();
     private MovieAdapterOnClickHandler mClickHandler;
 
-    public interface MovieAdapterOnClickHandler {
-        void handleClicks(int position);
-    }
-
     public MovieAdapter(Context context, MovieAdapterOnClickHandler clickHandler) {
         this.context = context;
         mClickHandler=clickHandler;
@@ -40,14 +41,22 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
     }
 
     @Override
-    public void onBindViewHolder(MovieAdapterViewHolder holder, int position) {
-        Picasso.with(context).load(BASE_URL + mMovieAttributes.get(position).get_poster_path()).fit().centerCrop().placeholder(R.color.colorAccent).into(holder.androidImage);
-
+    public void onBindViewHolder(final MovieAdapterViewHolder holder, int position) {
+        Glide.with(context).load(BASE_URL + mMovieAttributes.get(position).get_poster_path()).fitCenter().centerCrop().placeholder(R.color.colorAccent).crossFade().diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.androidImage);
     }
 
     @Override
     public int getItemCount() {
         return mMovieAttributes.size();
+    }
+
+    public void setMovieData(ArrayList<MovieAttributes> movieAttributes) {
+        mMovieAttributes = movieAttributes;
+        notifyDataSetChanged();
+    }
+
+    public interface MovieAdapterOnClickHandler {
+        void handleClicks(int position);
     }
 
     public class MovieAdapterViewHolder extends RecyclerView.ViewHolder {
@@ -64,11 +73,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
             });
         }
 
-    }
-
-    public void setMovieData(ArrayList<MovieAttributes> movieAttributes) {
-        mMovieAttributes = movieAttributes;
-        notifyDataSetChanged();
     }
 
 }

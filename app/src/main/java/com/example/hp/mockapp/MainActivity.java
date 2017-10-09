@@ -2,11 +2,16 @@ package com.example.hp.mockapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Parcelable;
+import android.os.StrictMode;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -26,12 +31,20 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -46,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar mLoadingIndicator;
     private LinearLayout mLinearLayout;
     private TextView mErrorMessageDisplay;
+    private ArrayList<String> movieTrailerKeys = new ArrayList<>();
+    private ArrayList<String> movieVideoNames = new ArrayList<>();
+    private ArrayList<String> movieImageFilePaths = new ArrayList<>();
 
     public static Boolean hasNetwork(Context context) {
         Boolean isThereNetwork = false;
@@ -60,11 +76,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view_movies);
-        spinner = (Spinner) findViewById(R.id.filter_spinner);
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
-        mLinearLayout = (LinearLayout) findViewById(R.id.movie_list_linear_layout);
-        mErrorMessageDisplay = (TextView) findViewById(R.id.error_message_display);
+        mRecyclerView = findViewById(R.id.recycler_view_movies);
+        spinner = findViewById(R.id.filter_spinner);
+        mLoadingIndicator = findViewById(R.id.loading_indicator);
+        mLinearLayout = findViewById(R.id.movie_list_linear_layout);
+        mErrorMessageDisplay = findViewById(R.id.error_message_display);
         Boolean hasConnectivity = hasNetwork(this);
         if (!hasConnectivity) {
             mLinearLayout.setVisibility(View.INVISIBLE);
@@ -75,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
             spinner.setAdapter(arrayAdapter);
             spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int pos, long l) {
+                public void onItemSelected(AdapterView<?> parent, View view, final int pos, long l) {
                     genre = (String) parent.getItemAtPosition(pos);
                     if (genre.compareTo("Popular") == 0)
                         genre = "popular";
@@ -84,16 +100,85 @@ public class MainActivity extends AppCompatActivity {
                     GridLayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
                     mRecyclerView.setLayoutManager(layoutManager);
                     mMovieAdapter = new MovieAdapter(getApplicationContext(), new MovieAdapter.MovieAdapterOnClickHandler() {
+                        MovieAttributes dataToSend;
+
                         @Override
                         public void handleClicks(int position) {
-                            MovieAttributes dataToSend = movieAttributes.get(position);
+                            dataToSend = movieAttributes.get(position);
+                            new FetchBackdropBitmapTask().execute(position);
+                            /*Bitmap myBitmap=null;
+                            int SDK_INT = android.os.Build.VERSION.SDK_INT;
+                            if (SDK_INT > 8)
+                            {
+                                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                                        .permitAll().build();
+                                StrictMode.setThreadPolicy(policy);
+                                try {
+                                    URL url = new URL(MovieAdapter.BASE_URL+movieAttributes.get(position).get_poster_path());
+                                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                                    connection.setDoInput(true);
+                                    connection.connect();
+                                    InputStream input = connection.getInputStream();
+                                    myBitmap = BitmapFactory.decodeStream(input);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+
+                            ByteArrayOutputStream stream= new ByteArrayOutputStream();
+                            myBitmap.compress(Bitmap.CompressFormat.PNG,100,stream);
+                            byte[] byteArray=stream.toByteArray();
                             Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
                             intent.putExtra("myDataKey", dataToSend);
-                            startActivity(intent);
+                            intent.putExtra("image",byteArray);
+                            intent.putStringArrayListExtra("Movie Trailer Keys", movieTrailerKeys);
+                            intent.putStringArrayListExtra("Movie Video Names", movieVideoNames);
+                            intent.putStringArrayListExtra("Movie Image File Paths", movieImageFilePaths);
+                            startActivity(intent);*/
+                        }
+
+                        class FetchBackdropBitmapTask extends AsyncTask<Integer, Void, Bitmap> {
+                            Bitmap myBitmap;
+                            int position;
+
+                            @Override
+                            protected Bitmap doInBackground(Integer... integers) {
+                                position = integers[0];
+                                try {
+                                    URL url = new URL(MovieAdapter.BASE_URL + movieAttributes.get(position).get_backdrop_path());
+                                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                                    connection.setDoInput(true);
+                                    connection.connect();
+                                    InputStream input = connection.getInputStream();
+                                    myBitmap = BitmapFactory.decodeStream(input);
+                                    return myBitmap;
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    return null;
+                                }
+
+                            }
+
+                            @Override
+                            protected void onPostExecute(Bitmap bitmap) {
+                                MovieAttributes dataToSend = movieAttributes.get(position);
+                                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                                myBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                                byte[] byteArray = stream.toByteArray();
+                                Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
+                                intent.putExtra("myDataKey", dataToSend);
+                                intent.putExtra("image", byteArray);
+                                intent.putStringArrayListExtra("Movie Trailer Keys", movieTrailerKeys);
+                                intent.putStringArrayListExtra("Movie Video Names", movieVideoNames);
+                                intent.putStringArrayListExtra("Movie Image File Paths", movieImageFilePaths);
+                                startActivity(intent);
+                            }
                         }
                     });
                     mRecyclerView.setAdapter(mMovieAdapter);
                     new FetchMoviesTask().execute(genre);
+
 
                 }
 
@@ -108,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void parseJson(String json) {
         movieAttributes.clear();
+        int movieId;
         try {
 
             JSONObject jsonObj = new JSONObject(json);
@@ -120,7 +206,11 @@ public class MainActivity extends AppCompatActivity {
                 obj.set_overview(c.getString("overview"));
                 obj.set_vote_average(c.getDouble("vote_average"));
                 obj.set_release_date(c.getString("release_date"));
+                obj.set_vote_count(c.getInt("vote_count"));
+                obj.set_movie_id(c.getInt("id"));
+                obj.set_backdrop_path(c.getString("backdrop_path"));
                 movieAttributes.add(obj);
+
             }
 
         } catch (JSONException e) {
@@ -129,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
         mMovieAdapter.setMovieData(movieAttributes);
 
     }
+
 
     private class FetchMoviesTask extends AsyncTask<String, Void, String> {
         private String movieListResponse;
@@ -161,4 +252,6 @@ public class MainActivity extends AppCompatActivity {
             parseJson(json);
         }
     }
+
+
 }

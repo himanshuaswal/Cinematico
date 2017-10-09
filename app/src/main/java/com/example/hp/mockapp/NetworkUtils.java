@@ -32,6 +32,19 @@ public class NetworkUtils {
         return url;
     }
 
+    public static URL buildUrlForMovieTrailersAndReviews(int movieId, String attribute) {
+        Uri builtUri = Uri.parse(MOVIES_URL + movieId + attribute).buildUpon()
+                .appendQueryParameter(api_param, API_KEY)
+                .build();
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return url;
+    }
+
 
     public static String getResponseFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
