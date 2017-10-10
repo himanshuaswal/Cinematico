@@ -7,6 +7,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,6 +30,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
     private Context context;
     private ArrayList<MovieAttributes> mMovieAttributes = new ArrayList<>();
     private MovieAdapterOnClickHandler mClickHandler;
+    private int lastPosition = -1;
 
     public MovieAdapter(Context context, MovieAdapterOnClickHandler clickHandler) {
         this.context = context;
@@ -42,7 +45,16 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
 
     @Override
     public void onBindViewHolder(final MovieAdapterViewHolder holder, int position) {
-        Glide.with(context).load(BASE_URL + mMovieAttributes.get(position).get_poster_path()).fitCenter().centerCrop().placeholder(R.color.colorAccent).crossFade().diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.androidImage);
+        Glide.with(context).load(BASE_URL + mMovieAttributes.get(position).get_poster_path()).fitCenter().centerCrop().placeholder(R.mipmap.placeholder).crossFade().diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.androidImage);
+        setAnimation(holder.itemView, position);
+    }
+
+    private void setAnimation(View viewToAnimate, int position) {
+        if (position > lastPosition) {
+            Animation animation = AnimationUtils.loadAnimation(context, R.anim.item_animation_from_bottom);
+            viewToAnimate.startAnimation(animation);
+            lastPosition = position;
+        }
     }
 
     @Override

@@ -22,6 +22,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
@@ -100,81 +102,19 @@ public class MainActivity extends AppCompatActivity {
                     GridLayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
                     mRecyclerView.setLayoutManager(layoutManager);
                     mMovieAdapter = new MovieAdapter(getApplicationContext(), new MovieAdapter.MovieAdapterOnClickHandler() {
-                        MovieAttributes dataToSend;
 
                         @Override
                         public void handleClicks(int position) {
-                            dataToSend = movieAttributes.get(position);
-                            new FetchBackdropBitmapTask().execute(position);
-                            /*Bitmap myBitmap=null;
-                            int SDK_INT = android.os.Build.VERSION.SDK_INT;
-                            if (SDK_INT > 8)
-                            {
-                                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-                                        .permitAll().build();
-                                StrictMode.setThreadPolicy(policy);
-                                try {
-                                    URL url = new URL(MovieAdapter.BASE_URL+movieAttributes.get(position).get_poster_path());
-                                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                                    connection.setDoInput(true);
-                                    connection.connect();
-                                    InputStream input = connection.getInputStream();
-                                    myBitmap = BitmapFactory.decodeStream(input);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-
-                            }
-
-                            ByteArrayOutputStream stream= new ByteArrayOutputStream();
-                            myBitmap.compress(Bitmap.CompressFormat.PNG,100,stream);
-                            byte[] byteArray=stream.toByteArray();
                             Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
+                            MovieAttributes dataToSend = movieAttributes.get(position);
+
                             intent.putExtra("myDataKey", dataToSend);
-                            intent.putExtra("image",byteArray);
                             intent.putStringArrayListExtra("Movie Trailer Keys", movieTrailerKeys);
                             intent.putStringArrayListExtra("Movie Video Names", movieVideoNames);
                             intent.putStringArrayListExtra("Movie Image File Paths", movieImageFilePaths);
-                            startActivity(intent);*/
+                            startActivity(intent);
                         }
 
-                        class FetchBackdropBitmapTask extends AsyncTask<Integer, Void, Bitmap> {
-                            Bitmap myBitmap;
-                            int position;
-
-                            @Override
-                            protected Bitmap doInBackground(Integer... integers) {
-                                position = integers[0];
-                                try {
-                                    URL url = new URL(MovieAdapter.BASE_URL + movieAttributes.get(position).get_backdrop_path());
-                                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                                    connection.setDoInput(true);
-                                    connection.connect();
-                                    InputStream input = connection.getInputStream();
-                                    myBitmap = BitmapFactory.decodeStream(input);
-                                    return myBitmap;
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    return null;
-                                }
-
-                            }
-
-                            @Override
-                            protected void onPostExecute(Bitmap bitmap) {
-                                MovieAttributes dataToSend = movieAttributes.get(position);
-                                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                                myBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                                byte[] byteArray = stream.toByteArray();
-                                Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
-                                intent.putExtra("myDataKey", dataToSend);
-                                intent.putExtra("image", byteArray);
-                                intent.putStringArrayListExtra("Movie Trailer Keys", movieTrailerKeys);
-                                intent.putStringArrayListExtra("Movie Video Names", movieVideoNames);
-                                intent.putStringArrayListExtra("Movie Image File Paths", movieImageFilePaths);
-                                startActivity(intent);
-                            }
-                        }
                     });
                     mRecyclerView.setAdapter(mMovieAdapter);
                     new FetchMoviesTask().execute(genre);
@@ -217,7 +157,16 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         mMovieAdapter.setMovieData(movieAttributes);
+        mMovieAdapter.notifyDataSetChanged();
+        runLayoutAnimation();
 
+
+    }
+
+    private void runLayoutAnimation() {
+        final LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(this, R.anim.grid_layout_animation_from_bottom);
+        mRecyclerView.setLayoutAnimation(controller);
+        mRecyclerView.scheduleLayoutAnimation();
     }
 
 

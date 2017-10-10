@@ -13,12 +13,14 @@
             android:id="@+id/filter_spinner"
             android:layout_width="140dp"
             android:layout_height="50dp"
-            android:layout_gravity="center"
+            android:layout_gravity="center_horizontal"
             android:layout_marginBottom="20dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:layout_marginTop="20dp" />
 
 
-        <android.support.v7.widget.RecyclerView
+        <com.example.hp.mockapp.GridRecyclerView
             android:id="@+id/recycler_view_movies"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -26,7 +28,8 @@
             android:layout_marginBottom="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="8dp"
+            android:layoutAnimation="@anim/grid_layout_animation_from_bottom" />
     </LinearLayout>
 
     <ProgressBar

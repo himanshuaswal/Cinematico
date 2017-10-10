@@ -44,7 +44,6 @@ public class MovieDetails extends AppCompatActivity {
     private RecyclerView mReviewRecyclerView;
     private MovieTrailersAdapter movieDetailsAdapter;
     private MovieReviewsAdapter mMovieReviewAdapter;
-    private byte[] byteArray;
     private Bitmap bmp;
 
     @Override
@@ -61,8 +60,6 @@ public class MovieDetails extends AppCompatActivity {
         mReviewRecyclerView = findViewById(R.id.recycler_view_movie_reviews);
         Intent intentThatStartedThisActivity = getIntent();
         MovieAttributes object = intentThatStartedThisActivity.getParcelableExtra("myDataKey");
-        byteArray = intentThatStartedThisActivity.getByteArrayExtra("image");
-        bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
         movieId = object.get_movie_id();
         movieTrailerKeys = intentThatStartedThisActivity.getStringArrayListExtra("Movie Trailer Keys");
         movieVideoNames = intentThatStartedThisActivity.getStringArrayListExtra("Movie Video Names");
@@ -77,7 +74,7 @@ public class MovieDetails extends AppCompatActivity {
                 bounceAnimation();
             }
         });
-        movieDetailsAdapter = new MovieTrailersAdapter(this, bmp);
+        movieDetailsAdapter = new MovieTrailersAdapter(this, object.get_backdrop_path());
         mMovieReviewAdapter = new MovieReviewsAdapter(this);
         mReviewRecyclerView.setAdapter(mMovieReviewAdapter);
         mTrailerRecyclerView.setAdapter(movieDetailsAdapter);
@@ -103,7 +100,7 @@ public class MovieDetails extends AppCompatActivity {
         mVoteAverage.setText(String.valueOf(object.get_vote_average()) + "/10");
         mOverview.setText(object.get_overview());
         movieId = object.get_movie_id();
-        Glide.with(this).load(MovieAdapter.BASE_URL + object.get_poster_path()).fitCenter().placeholder(R.color.colorAccent).into(mPosterPath);
+        Glide.with(this).load(MovieAdapter.BASE_URL + object.get_poster_path()).fitCenter().placeholder(R.mipmap.placeholder).into(mPosterPath);
     }
 
     private void parseJsonTrailerResponse(String json) {
@@ -121,6 +118,7 @@ public class MovieDetails extends AppCompatActivity {
             e.printStackTrace();
         }
         movieDetailsAdapter.setMovieTrailersData(movieVideoNames, movieTrailerKeys);
+        movieDetailsAdapter.notifyDataSetChanged();
     }
 
     private void parseJsonReviewResponse(String json) {
@@ -138,6 +136,8 @@ public class MovieDetails extends AppCompatActivity {
             e.printStackTrace();
         }
         mMovieReviewAdapter.setMovieReviewsData(movieReviewAuthor, movieReviews);
+        mMovieReviewAdapter.notifyDataSetChanged();
+
     }
 
     private class FetchTrailersTask extends AsyncTask<Integer, Void, String> {
