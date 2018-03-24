@@ -1,10 +1,13 @@
 <resources>
     <string name="app_name">Cinematico</string>
-    <string name="drawer_open">Drawer Open</string>
-    <string name="drawer_close">Drawer Close</string>
     <string-array name="spinner_filter">
         <item>Top Rated</item>
         <item>Popular</item>
+        <item>Favorites</item>
     </string-array>
     <string name="error_message">No network access.Please have a proper network connection</string>
+    <string name="remove_fav">Movie removed from favorites</string>
+    <string name="add_fav">Movie added to favorites</string>
+    <string name="no_internet">No Internet Connection!</string>
+    <string name="developer_name">Developer:Gautam Krishnan!</string>
 </resources>

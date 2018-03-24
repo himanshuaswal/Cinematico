@@ -1,8 +1,9 @@
 package com.example.hp.mockapp;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Movie;
+import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,13 +11,10 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -34,7 +32,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
 
     public MovieAdapter(Context context, MovieAdapterOnClickHandler clickHandler) {
         this.context = context;
-        mClickHandler=clickHandler;
+        mClickHandler = clickHandler;
     }
 
     @Override
@@ -45,7 +43,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
 
     @Override
     public void onBindViewHolder(final MovieAdapterViewHolder holder, int position) {
-        Glide.with(context).load(BASE_URL + mMovieAttributes.get(position).get_poster_path()).fitCenter().centerCrop().placeholder(R.mipmap.placeholder).crossFade().diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.androidImage);
+        Glide
+                .with(context)
+                .load(MovieAdapter.BASE_URL + mMovieAttributes.get(position).get_poster_path())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .fitCenter().placeholder(R.color.colorAccent)
+                .into(holder.androidImage);
         setAnimation(holder.itemView, position);
     }
 
@@ -67,6 +70,15 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         notifyDataSetChanged();
     }
 
+    public Cursor swapCursor(Cursor newCursor, Cursor oldCursor) {
+        if (oldCursor != null) oldCursor.close();
+        if (newCursor != null) {
+            this.notifyDataSetChanged();
+
+        }
+        return newCursor;
+    }
+
     public interface MovieAdapterOnClickHandler {
         void handleClicks(int position);
     }
@@ -86,5 +98,4 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         }
 
     }
-
 }

@@ -89,8 +89,10 @@
             android:id="@+id/rating_favorite_linear_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="16dp"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="20dp"
             android:orientation="horizontal"
             app:layout_constraintHorizontal_bias="0.02"
@@ -108,13 +110,13 @@
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/favorite_button"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="top"
                 android:layout_marginLeft="16dp"
-                android:background="@drawable/ic_favorite_selected"
+                android:background="@drawable/ic_favorite_diselected"
                 android:scaleType="fitXY" />
 
 
@@ -156,26 +158,44 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginRight="8dp"
             android:fontFamily="sans-serif"
-            android:text="Exclusive Videos"
+            android:text="Exclusive Video(s)"
             android:textColor="#FFFFFF"
             android:textSize="25sp"
             android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/hint"
             app:layout_constraintHorizontal_bias="0.02"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/view1" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view_movie_trailers"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:fontFamily="sans-serif"
+            android:text="(Swipe right to see more videos)"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/recycler_view_movie_trailers"
+            app:layout_constraintHorizontal_bias="0.02"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/trailer_heading" />
+            app:layout_constraintTop_toBottomOf="@+id/trailer_heading"
+            app:layout_constraintVertical_bias="0.13" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view_movie_trailers"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/review_heading"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/hint" />
 
         <View
             android:id="@+id/view2"
@@ -210,7 +230,7 @@
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_view_movie_reviews"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             app:layout_constraintLeft_toLeftOf="parent"

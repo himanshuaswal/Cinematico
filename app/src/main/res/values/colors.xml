@@ -4,6 +4,9 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorBlack">#000</color>
 
-    
+    <color name="md_red_700">#D32F2F</color>
+    <color name="md_indigo_800">#283593</color>
+    <color name="md_cyan_300">#4DD0E1</color>
+
 
 </resources>

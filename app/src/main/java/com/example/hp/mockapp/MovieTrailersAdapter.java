@@ -2,7 +2,6 @@ package com.example.hp.mockapp;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,9 +12,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -28,7 +26,6 @@ public class MovieTrailersAdapter extends RecyclerView.Adapter<MovieTrailersAdap
     Context context;
     private ArrayList<String> videoNames = new ArrayList<>();
     private ArrayList<String> mMovieTrailerKeys = new ArrayList<>();
-    //private Bitmap mPosterBitmap;
     private String mPosterPath;
 
     public MovieTrailersAdapter(Context context, String posterPath) {
@@ -44,8 +41,12 @@ public class MovieTrailersAdapter extends RecyclerView.Adapter<MovieTrailersAdap
 
     @Override
     public void onBindViewHolder(MovieTrailerViewHolder holder, int position) {
-        //holder.posterBackdrop.setImageBitmap(mPosterBitmap);
-        Glide.with(context).load(MovieAdapter.BASE_URL + mPosterPath).fitCenter().placeholder(R.color.colorAccent).into(holder.posterBackdrop);
+        Glide
+                .with(context)
+                .load(MovieAdapter.BASE_URL + mPosterPath)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .fitCenter().placeholder(R.color.colorAccent)
+                .into(holder.posterBackdrop);
 
         holder.mVideoHeading.setText(videoNames.get(position));
         holder.mPlayTrailerButton.setBackgroundResource(R.drawable.ic_play_circle_outline);
