@@ -7,6 +7,8 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +18,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,7 +36,6 @@ import java.util.ArrayList;
 public class MovieDetails extends AppCompatActivity {
 
     MovieAttributes object;
-    private TextView mOriginalTitle;
     private TextView mOverview;
     private TextView mVoteAverage;
     private TextView mReleaseDate;
@@ -45,7 +47,7 @@ public class MovieDetails extends AppCompatActivity {
     private ArrayList<String> movieReviews = new ArrayList<>();
     private ArrayList<String> movieReviewAuthor = new ArrayList<>();
     private RecyclerView mTrailerRecyclerView;
-    private ImageButton mFavoriteButton;
+    private FloatingActionButton mFavoriteButton;
     private RecyclerView mReviewRecyclerView;
     private MovieTrailersAdapter movieDetailsAdapter;
     private MovieReviewsAdapter mMovieReviewAdapter;
@@ -55,7 +57,6 @@ public class MovieDetails extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
-        mOriginalTitle = findViewById(R.id.original_title);
         mOverview = findViewById(R.id.overview);
         mVoteAverage = findViewById(R.id.vote_average);
         mReleaseDate = findViewById(R.id.release_date);
@@ -71,10 +72,11 @@ public class MovieDetails extends AppCompatActivity {
         LinearLayoutManager movieTrailerLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         LinearLayoutManager movieReviewLayoutManager = new LinearLayoutManager(this);
         mReviewRecyclerView.setLayoutManager(movieReviewLayoutManager);
+        mReviewRecyclerView.setNestedScrollingEnabled(false);
         mTrailerRecyclerView.setLayoutManager(movieTrailerLayoutManager);
         FavoritesDBHelper dbHelper = new FavoritesDBHelper(this);
         database = dbHelper.getWritableDatabase();
-        mFavoriteButton = findViewById(R.id.favorite_button);
+        mFavoriteButton = findViewById(R.id.floatingActionButton);
         if (CheckIsDataAlreadyInDborNot())
             mFavoriteButton.setImageResource(R.drawable.ic_favorite_selected);
         else
@@ -154,7 +156,6 @@ public class MovieDetails extends AppCompatActivity {
     }
 
     private void showDetails(MovieAttributes object) {
-        mOriginalTitle.setText(object.get_original_title());
         mVoteCount.setText(String.valueOf(object.get_vote_count()));
         mVoteCount.append(" votes");
         mReleaseDate.setText(object.get_release_date());
@@ -223,7 +224,7 @@ public class MovieDetails extends AppCompatActivity {
             CookieBar.build(MovieDetails.this)
                     .setTitle(R.string.add_fav)
                     .setBackgroundColor(R.color.md_cyan_300)
-                    .setLayoutGravity(Gravity.BOTTOM)
+                    .setLayoutGravity(Gravity.TOP)
                     .setDuration(2000)
                     .show();
         }

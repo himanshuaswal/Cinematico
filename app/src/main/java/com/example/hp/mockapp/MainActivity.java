@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
             spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, final int pos, long l) {
+                    ((TextView) parent.getChildAt(0)).setTextColor(Color.BLACK);
                     genre = (String) parent.getItemAtPosition(pos);
                     if (genre.compareTo("Popular") == 0) {
                         genre = "popular";
@@ -120,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
                         public void handleClicks(int position) {
                             Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
                             MovieAttributes dataToSend = movieAttributes.get(position);
-
                             intent.putExtra("myDataKey", dataToSend);
                             intent.putStringArrayListExtra("Movie Trailer Keys", movieTrailerKeys);
                             intent.putStringArrayListExtra("Movie Video Names", movieVideoNames);
@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onNothingSelected(AdapterView<?> adapterView) {
                 }
             });
-            this.getWindow().getDecorView().setBackgroundColor(Color.BLACK);
+            //this.getWindow().getDecorView().setBackgroundColor(Color.BLACK);
             mRecyclerView.addItemDecoration(new SpacesItemDecoration(2, 20, true));
         }
     }
