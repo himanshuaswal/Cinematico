@@ -5,9 +5,10 @@
         <item>Popular</item>
         <item>Favorites</item>
     </string-array>
-    <string name="error_message">No network access.Please have a proper network connection</string>
+    <string name="error_message">Please check your internet connection</string>
     <string name="remove_fav">Movie removed from favorites</string>
     <string name="add_fav">Movie added to favorites</string>
-    <string name="no_internet">No Internet Connection!</string>
+    <string name="no_internet">No Internet Connection!You can view your Favorites.</string>
     <string name="developer_name">Developer:Gautam Krishnan!</string>
+    <string name="no_favorites">Oops! No Favorites</string>
 </resources>

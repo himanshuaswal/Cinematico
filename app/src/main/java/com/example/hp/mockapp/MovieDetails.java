@@ -7,20 +7,21 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -39,7 +40,11 @@ public class MovieDetails extends AppCompatActivity {
     private TextView mOverview;
     private TextView mVoteAverage;
     private TextView mReleaseDate;
+    private LinearLayout mLinearLayout;
+    private CardView mCardView;
     private ImageView mPosterPath;
+    private AsyncTask<Integer, Void, String> mTrailersTask;
+    private AsyncTask<Integer, Void, String> mReviewsTask;
     private TextView mVoteCount;
     private int movieId;
     private ArrayList<String> movieTrailerKeys = new ArrayList<>();
@@ -53,10 +58,14 @@ public class MovieDetails extends AppCompatActivity {
     private MovieReviewsAdapter mMovieReviewAdapter;
     private SQLiteDatabase database;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
+        getSupportActionBar().hide();
+        mLinearLayout = findViewById(R.id.t_r_section);
+        mCardView = findViewById(R.id.no_internet);
         mOverview = findViewById(R.id.overview);
         mVoteAverage = findViewById(R.id.vote_average);
         mReleaseDate = findViewById(R.id.release_date);
@@ -106,8 +115,17 @@ public class MovieDetails extends AppCompatActivity {
         mReviewRecyclerView.setAdapter(mMovieReviewAdapter);
         mTrailerRecyclerView.setAdapter(movieDetailsAdapter);
         mTrailerRecyclerView.setNestedScrollingEnabled(false);
-        new FetchTrailersTask().execute(movieId);
-        new FetchReviewsTask().execute(movieId);
+        mTrailersTask = new FetchTrailersTask().execute(movieId);
+        mReviewsTask = new FetchReviewsTask().execute(movieId);
+        if (MainActivity.hasNetwork(this)) {
+            mLinearLayout.setVisibility(View.VISIBLE);
+            mCardView.setVisibility(View.INVISIBLE);
+        } else {
+            mLinearLayout.setVisibility(View.INVISIBLE);
+            mCardView.setVisibility(View.VISIBLE);
+            mReviewsTask.cancel(true);
+            mTrailersTask.cancel(true);
+        }
         showDetails(object);
     }
 
@@ -278,6 +296,7 @@ public class MovieDetails extends AppCompatActivity {
 
         }
     }
+
 }
 
 

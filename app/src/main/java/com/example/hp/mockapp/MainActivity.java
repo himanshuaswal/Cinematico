@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
+import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
@@ -22,8 +23,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.hp.mockapp.data.TestUtils;
-
+import org.aviran.cookiebar2.CookieBar;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,9 +45,9 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar mLoadingIndicator;
     private AsyncTask<String, Void, String> mTask;
     private LinearLayout mLinearLayout;
+    private Toast mToast;
     private SQLiteDatabase fDB;
     private boolean flag = false;
-    private TextView mErrorMessageDisplay;
     private Spinner spinner;
 
     public static Boolean hasNetwork(Context context) {
@@ -69,13 +69,24 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView = findViewById(R.id.recycler_view_movies);
         mLoadingIndicator = findViewById(R.id.loading_indicator);
         mLinearLayout = findViewById(R.id.movie_list_linear_layout);
-        mErrorMessageDisplay = findViewById(R.id.error_message_display);
         spinner = findViewById(R.id.filter_spinner);
         Boolean hasConnectivity = hasNetwork(this);
         if (!hasConnectivity) {
-            mLinearLayout.setVisibility(View.INVISIBLE);
-            //mErrorMessageDisplay.setVisibility(View.VISIBLE);
-            Toast.makeText(this, R.string.no_internet, Toast.LENGTH_LONG).show();
+            mToast = Toast.makeText(this, R.string.no_internet, Toast.LENGTH_LONG);
+            mToast.show();
+            movieAttributes.clear();
+            cursor = getAllFavoriteMovies();
+            if (cursor.getCount() > 0)
+                displayFavoriteMovies(cursor);
+            else {
+                mToast.cancel();
+                CookieBar.build(this)
+                        .setTitle("Nothing to View!!Check your internet")
+                        .setBackgroundColor(R.color.md_red_700)
+                        .setLayoutGravity(Gravity.BOTTOM)
+                        .setDuration(2000)
+                        .show();
+            }
         } else {
             ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_filter, R.layout.spinner_item);
             arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -92,48 +103,18 @@ public class MainActivity extends AppCompatActivity {
                         movieAttributes.clear();
                         mTask.cancel(true);
                         cursor = mMovieAdapter.swapCursor(getAllFavoriteMovies(), cursor);
-                        try {
-                            while (cursor.moveToNext()) {
-                                MovieAttributes obj = new MovieAttributes();
-                                obj.set_poster_path(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_POSTER_PATH)));
-                                obj.set_original_title(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_ORIGINAL_TITLE)));
-                                obj.set_overview(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_OVERVIEW)));
-                                obj.set_vote_average(Double.parseDouble(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_VOTE_AVERAGE))));
-                                obj.set_release_date(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_RELEASE_DATE)));
-                                obj.set_vote_count(Integer.parseInt(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_VOTE_COUNT))));
-                                obj.set_movie_id(Integer.parseInt(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_MOVIE_ID))));
-                                obj.set_backdrop_path(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_BACKDROP_PATH)));
-                                movieAttributes.add(obj);
-                            }
-                        } finally {
-                            cursor.close();
-                        }
-                        flag = true;
+                        if (cursor.getCount() > 0)
+                            displayFavoriteMovies(cursor);
+                        else
+                            CookieBar.build(MainActivity.this)
+                                    .setTitle(R.string.no_favorites)
+                                    .setBackgroundColor(R.color.md_red_700)
+                                    .setLayoutGravity(Gravity.BOTTOM)
+                                    .setDuration(2000)
+                                    .show();
                     } else {
                         genre = "top_rated";
                         mTask = new FetchMoviesTask().execute(genre);
-                    }
-                    GridLayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
-                    mRecyclerView.setLayoutManager(layoutManager);
-                    mMovieAdapter = new MovieAdapter(getApplicationContext(), new MovieAdapter.MovieAdapterOnClickHandler() {
-
-                        @Override
-                        public void handleClicks(int position) {
-                            Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
-                            MovieAttributes dataToSend = movieAttributes.get(position);
-                            intent.putExtra("myDataKey", dataToSend);
-                            intent.putStringArrayListExtra("Movie Trailer Keys", movieTrailerKeys);
-                            intent.putStringArrayListExtra("Movie Video Names", movieVideoNames);
-                            intent.putStringArrayListExtra("Movie Image File Paths", movieImageFilePaths);
-                            startActivity(intent);
-                        }
-
-                    });
-                    mRecyclerView.setAdapter(mMovieAdapter);
-                    if (flag == true) {
-                        mMovieAdapter.setMovieData(movieAttributes);
-                        mMovieAdapter.notifyDataSetChanged();
-                        runLayoutAnimation();
                     }
                 }
 
@@ -141,9 +122,51 @@ public class MainActivity extends AppCompatActivity {
                 public void onNothingSelected(AdapterView<?> adapterView) {
                 }
             });
-            //this.getWindow().getDecorView().setBackgroundColor(Color.BLACK);
-            mRecyclerView.addItemDecoration(new SpacesItemDecoration(2, 20, true));
         }
+        GridLayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mMovieAdapter = new MovieAdapter(getApplicationContext(), new MovieAdapter.MovieAdapterOnClickHandler() {
+
+            @Override
+            public void handleClicks(int position) {
+                Intent intent = new Intent(getApplicationContext(), MovieDetails.class);
+                MovieAttributes dataToSend = movieAttributes.get(position);
+                intent.putExtra("myDataKey", dataToSend);
+                intent.putStringArrayListExtra("Movie Trailer Keys", movieTrailerKeys);
+                intent.putStringArrayListExtra("Movie Video Names", movieVideoNames);
+                intent.putStringArrayListExtra("Movie Image File Paths", movieImageFilePaths);
+                startActivity(intent);
+            }
+
+        });
+        mRecyclerView.setAdapter(mMovieAdapter);
+        if (flag) {
+            mMovieAdapter.setMovieData(movieAttributes);
+            mMovieAdapter.notifyDataSetChanged();
+            runLayoutAnimation();
+        }
+        mRecyclerView.addItemDecoration(new SpacesItemDecoration(2, 20, true));
+    }
+
+    private void displayFavoriteMovies(Cursor cursor) {
+
+        try {
+            while (cursor.moveToNext()) {
+                MovieAttributes obj = new MovieAttributes();
+                obj.set_poster_path(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_POSTER_PATH)));
+                obj.set_original_title(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_ORIGINAL_TITLE)));
+                obj.set_overview(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_OVERVIEW)));
+                obj.set_vote_average(Double.parseDouble(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_VOTE_AVERAGE))));
+                obj.set_release_date(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_RELEASE_DATE)));
+                obj.set_vote_count(Integer.parseInt(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_VOTE_COUNT))));
+                obj.set_movie_id(Integer.parseInt(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_MOVIE_ID))));
+                obj.set_backdrop_path(cursor.getString(cursor.getColumnIndex(FavoritesContract.FavoritesSpec.COLUMN_BACKDROP_PATH)));
+                movieAttributes.add(obj);
+            }
+        } finally {
+            cursor.close();
+        }
+        flag = true;
     }
 
     private Cursor getAllFavoriteMovies() {
