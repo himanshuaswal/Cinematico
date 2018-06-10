@@ -23,6 +23,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
+
 import org.aviran.cookiebar2.CookieBar;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -49,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private SQLiteDatabase fDB;
     private boolean flag = false;
     private Spinner spinner;
+    private FirebaseAnalytics mFirebaseAnalytics;
 
     public static Boolean hasNetwork(Context context) {
         Boolean isThereNetwork = false;
@@ -63,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mFirebaseAnalytics=FirebaseAnalytics.getInstance(this);
         Toast.makeText(this, R.string.developer_name, Toast.LENGTH_LONG).show();
         FavoritesDBHelper dbHelper = new FavoritesDBHelper(this);
         fDB = dbHelper.getWritableDatabase();

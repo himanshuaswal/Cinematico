@@ -8,14 +8,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -182,7 +179,7 @@ public class MovieDetails extends AppCompatActivity {
         movieId = object.get_movie_id();
         Glide
                 .with(this)
-                .load(MovieAdapter.BASE_URL + object.get_poster_path())
+                .load(MovieAdapter.BASE_URL + object.get_backdrop_path())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .fitCenter().placeholder(R.color.colorAccent)
                 .into(mPosterPath);
